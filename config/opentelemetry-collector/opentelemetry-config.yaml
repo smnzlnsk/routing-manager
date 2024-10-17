@@ -11,7 +11,7 @@ exporters:
     interval: 1s
     client_id: routing_manager
     # TODO: set maybe wildcard topic name
-    topic: metrics/done
+    topic: routing/update
     broker:
       host: 127.0.0.1
       port: 1883
