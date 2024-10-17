@@ -1,0 +1,9 @@
+archive/
+.idea/
+exporters/
+receivers/
+processors/
+"*.exe"
+"*.out"
+"*.test"
+"*.log"

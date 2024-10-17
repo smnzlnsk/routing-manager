@@ -1,0 +1,20 @@
+dist:
+  # module: github.com/smnzlnsk/routing-manager
+  description: Master Thesis - Telemetry driven Network Optimisation in Edge-Cloud Orchestration Frameworks
+  otelcol_version: 0.109.0
+  version: 0.0.1
+  output_path: build
+  name: routingmanager
+
+receivers:
+  - gomod: github.com/smnzlnsk/opentelemetry-components/receiver/httpreceiver latest
+    path: receivers/httpreceiver
+
+processors:
+  # TODO: implement routing processor
+  #  - gomod: github.com/smnzlnsk/opentelemetry-components/processor/routingprocessor v0.0.0
+
+exporters:
+  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.109.0
+  - gomod: github.com/smnzlnsk/opentelemetry-components/exporter/mqttexporter latest
+    path: exporters/mqttexporter

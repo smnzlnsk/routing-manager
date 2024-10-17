@@ -1,0 +1,29 @@
+receivers:
+  http:
+    endpoint:
+      port: &port 1880
+
+exporters:
+  debug:
+    verbosity: normal
+
+  mqtt:
+    interval: 1s
+    client_id: routing_manager
+    # TODO: set maybe wildcard topic name
+    topic: metrics/done
+    broker:
+      host: 127.0.0.1
+      port: 1883
+
+processors:
+
+service:
+  telemetry:
+    metrics:
+      level:
+  pipelines:
+    metrics:
+      receivers: [mqtt]
+      processors: []
+      exporters: [http, debug]
