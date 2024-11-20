@@ -1,11 +1,12 @@
 receivers:
   http:
     endpoint:
+      ip: 127.0.0.1
       port: &port 1880
 
 exporters:
   debug:
-    verbosity: normal
+    verbosity: detailed
 
   mqtt:
     interval: 1s
@@ -21,9 +22,9 @@ processors:
 service:
   telemetry:
     metrics:
-      level:
+      level: none
   pipelines:
     metrics:
-      receivers: [mqtt]
+      receivers: [http]
       processors: []
-      exporters: [http, debug]
+      exporters: [mqtt, debug]
