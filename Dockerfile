@@ -1,28 +1,53 @@
-# syntax=docker/dockerfile:1
+# Build stage
+FROM golang:1.20-alpine AS builder
 
-FROM golang:1.23-alpine AS builder
-
-ENV GO111MODULE=on
-ENV CGO_ENABLED=0
-
-RUN apk add --no-cache git make
-
+# Set working directory
 WORKDIR /app
 
-COPY config/opentelemetry-collector-builder/dev-manifest.yaml ./
-COPY ./config/opentelemetry-collector/opentelemetry-config.yaml ./
+# Install build dependencies
+RUN apk add --no-cache git
+
+# Copy go.mod and go.sum files
 COPY go.mod go.sum ./
 
-RUN go mod download && \
-  go install go.opentelemetry.io/collector/cmd/builder@v0.109.0
+# Download dependencies
+RUN go mod download
 
-RUN builder --config=dev-manifest.yaml --skip-strict-versioning
+# Copy the source code
+COPY . .
 
-FROM alpine:latest
+ARG VERSION
+ARG COMMIT
+ARG DATE
 
-WORKDIR /otel
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${DATE}" -a -installsuffix cgo -o routing-manager ./cmd/server
 
-COPY --from=builder /app/build/routingmanager .
-COPY --from=builder /app/opentelemetry-config.yaml .
+# Final stage
+FROM alpine:3.18
 
-ENTRYPOINT [ "./routingmanager", "--config=opentelemetry-config.yaml"]
+# Set working directory
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata
+
+# Create a non-root user to run the application
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Copy the binary from the builder stage
+COPY --from=builder /app/routing-manager /app/
+COPY --from=builder /app/config.yaml /app/
+
+# Set ownership of the application files
+RUN chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
+
+# Set environment variables
+ENV LOG_FORMAT=console \
+    LOG_LEVEL=info
+
+# Command to run the application
+ENTRYPOINT ["/app/routing-manager"]

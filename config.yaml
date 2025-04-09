@@ -1,0 +1,35 @@
+# Routing Manager Configuration
+
+# MQTT Configuration
+mqtt:
+  host: ${MQTT_BROKER_HOST}
+  port: ${MQTT_BROKER_PORT}
+  client_id: "routing-manager"
+  username: ""
+  password: ""
+  qos: 1
+  clean_session: true
+  connect_timeout: "30s"
+  topics:
+    routing_manager: "routing-manager"
+
+# MongoDB Configuration
+mongodb:
+  host: ${MONGODB_HOST}
+  port: ${MONGODB_PORT}
+  database: ${MONGODB_DATABASE}
+  collection: ${MONGODB_COLLECTION}
+  username: ${MONGODB_USERNAME}
+  password: ${MONGODB_PASSWORD}
+  timeout: "10s"
+
+# Monitoring Manager Configuration
+monitoring_manager:
+  host: ${MONITORING_MANAGER_HOST}
+  port: ${MONITORING_MANAGER_PORT}
+
+
+# Processor (RoutingManager) Configuration
+processor:
+  task_topic: "tasks"
+  result_topic: "results" 
