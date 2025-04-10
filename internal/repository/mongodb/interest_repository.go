@@ -7,7 +7,6 @@ import (
 	"github.com/smnzlnsk/routing-manager/internal/domain"
 	"github.com/smnzlnsk/routing-manager/internal/repository"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -84,8 +83,8 @@ func (r *interestRepository) Create(ctx context.Context, interest *domain.Intere
 func (r *interestRepository) GetByAppName(ctx context.Context, appName string) (*domain.Interest, error) {
 	r.logger.Debug("Getting interest by app name from MongoDB", zap.String("appName", appName))
 
-	var result bson.M
-	err := r.collection.FindOne(ctx, bson.M{"appname": appName}).Decode(&result)
+	var interest domain.Interest
+	err := r.collection.FindOne(ctx, bson.M{"appname": appName}).Decode(&interest)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, domain.ErrNotFound
@@ -93,29 +92,15 @@ func (r *interestRepository) GetByAppName(ctx context.Context, appName string) (
 		return nil, err
 	}
 
-	// Convert BSON to domain.Interest
-	interest := &domain.Interest{
-		AppName:   result["appname"].(string),
-		ServiceIp: result["serviceip"].(string),
-	}
-
-	// Handle timestamps
-	if createdAt, ok := result["createdat"].(primitive.DateTime); ok {
-		interest.CreatedAt = createdAt.Time()
-	}
-	if updatedAt, ok := result["updatedat"].(primitive.DateTime); ok {
-		interest.UpdatedAt = updatedAt.Time()
-	}
-
-	return interest, nil
+	return &interest, nil
 }
 
 // GetByServiceIp retrieves an interest by its service IP
 func (r *interestRepository) GetByServiceIp(ctx context.Context, serviceIp string) (*domain.Interest, error) {
 	r.logger.Debug("Getting interest by service IP from MongoDB", zap.String("serviceIp", serviceIp))
 
-	var result bson.M
-	err := r.collection.FindOne(ctx, bson.M{"serviceip": serviceIp}).Decode(&result)
+	var interest domain.Interest
+	err := r.collection.FindOne(ctx, bson.M{"serviceip": serviceIp}).Decode(&interest)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, domain.ErrNotFound
@@ -123,21 +108,7 @@ func (r *interestRepository) GetByServiceIp(ctx context.Context, serviceIp strin
 		return nil, err
 	}
 
-	// Convert BSON to domain.Interest
-	interest := &domain.Interest{
-		AppName:   result["appname"].(string),
-		ServiceIp: result["serviceip"].(string),
-	}
-
-	// Handle timestamps
-	if createdAt, ok := result["createdat"].(primitive.DateTime); ok {
-		interest.CreatedAt = createdAt.Time()
-	}
-	if updatedAt, ok := result["updatedat"].(primitive.DateTime); ok {
-		interest.UpdatedAt = updatedAt.Time()
-	}
-
-	return interest, nil
+	return &interest, nil
 }
 
 // Update updates an existing interest
@@ -166,26 +137,12 @@ func (r *interestRepository) Update(ctx context.Context, interest *domain.Intere
 		return nil, result.Err()
 	}
 
-	var updatedDoc bson.M
-	if err := result.Decode(&updatedDoc); err != nil {
+	var updatedInterest domain.Interest
+	if err := result.Decode(&updatedInterest); err != nil {
 		return nil, err
 	}
 
-	// Convert BSON to domain.Interest
-	updatedInterest := &domain.Interest{
-		AppName:   updatedDoc["appname"].(string),
-		ServiceIp: updatedDoc["serviceip"].(string),
-	}
-
-	// Handle timestamps
-	if createdAt, ok := updatedDoc["createdat"].(primitive.DateTime); ok {
-		updatedInterest.CreatedAt = createdAt.Time()
-	}
-	if updatedAt, ok := updatedDoc["updatedat"].(primitive.DateTime); ok {
-		updatedInterest.UpdatedAt = updatedAt.Time()
-	}
-
-	return updatedInterest, nil
+	return &updatedInterest, nil
 }
 
 // DeleteByAppName deletes an interest by its app name
@@ -232,25 +189,12 @@ func (r *interestRepository) List(ctx context.Context) ([]*domain.Interest, erro
 
 	var interests []*domain.Interest
 	for cursor.Next(ctx) {
-		var result bson.M
-		if err := cursor.Decode(&result); err != nil {
+		var interest domain.Interest
+		if err := cursor.Decode(&interest); err != nil {
 			return nil, err
 		}
 
-		interest := &domain.Interest{
-			AppName:   result["appname"].(string),
-			ServiceIp: result["serviceip"].(string),
-		}
-
-		// Handle timestamps
-		if createdAt, ok := result["createdat"].(primitive.DateTime); ok {
-			interest.CreatedAt = createdAt.Time()
-		}
-		if updatedAt, ok := result["updatedat"].(primitive.DateTime); ok {
-			interest.UpdatedAt = updatedAt.Time()
-		}
-
-		interests = append(interests, interest)
+		interests = append(interests, &interest)
 	}
 
 	if err := cursor.Err(); err != nil {

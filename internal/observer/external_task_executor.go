@@ -1,4 +1,4 @@
-package service
+package observer
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/smnzlnsk/routing-manager/internal/domain"
-	observer "github.com/smnzlnsk/routing-manager/internal/observer/implementations"
+	"github.com/smnzlnsk/routing-manager/internal/observer/implementations"
 	"go.uber.org/zap"
 )
 
@@ -22,14 +22,13 @@ type ExternalTaskExecutor struct {
 
 // TaskPayload represents the data to be sent to the external service
 type TaskPayload struct {
-	AppName     string    `json:"appName"`
-	ServiceIP   string    `json:"serviceIp"`
-	Timestamp   time.Time `json:"timestamp"`
-	RequestType string    `json:"requestType"`
+	AppName   string    `json:"appName"`
+	ServiceIP string    `json:"serviceIp"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // NewExternalTaskExecutor creates a new instance of ExternalTaskExecutor
-func NewExternalTaskExecutor(serviceURL string, timeout time.Duration, logger *zap.Logger) observer.TaskExecutor {
+func NewExternalTaskExecutor(serviceURL string, timeout time.Duration, logger *zap.Logger) implementations.TaskExecutor {
 	if timeout <= 0 {
 		timeout = 10 * time.Second
 	}
@@ -46,10 +45,9 @@ func NewExternalTaskExecutor(serviceURL string, timeout time.Duration, logger *z
 // ExecuteTask sends a task request to the external microservice
 func (e *ExternalTaskExecutor) ExecuteTask(interest *domain.Interest) error {
 	payload := TaskPayload{
-		AppName:     interest.AppName,
-		ServiceIP:   interest.ServiceIp,
-		Timestamp:   time.Now(),
-		RequestType: "health_check", // Can be parameterized if needed
+		AppName:   interest.AppName,
+		ServiceIP: interest.ServiceIp,
+		Timestamp: time.Now(),
 	}
 
 	jsonData, err := json.Marshal(payload)
@@ -68,7 +66,6 @@ func (e *ExternalTaskExecutor) ExecuteTask(interest *domain.Interest) error {
 
 	// Set appropriate headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Source", "routing-manager")
 
 	// Execute the request
 	resp, err := e.httpClient.Do(req)

@@ -168,8 +168,8 @@ func setupObservers(cfg *config.Config, services *service.Services, logger *zap.
 func httpServerSetup(cfg *config.Config, mongoClient *mongodb.Client) (*service.Services, *http.Server) {
 	// Create repositories
 	repositories := mongoRepo.New(
-		mongoClient.GetDatabase(),
-		cfg.MongoDB.Collection,
+		&cfg.MongoDB,
+		mongoClient,
 		logger.Get().Desugar(),
 	)
 

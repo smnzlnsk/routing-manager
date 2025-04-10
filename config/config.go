@@ -64,13 +64,16 @@ type ServiceManagerConfig struct {
 
 // MongoDBConfig holds MongoDB configuration
 type MongoDBConfig struct {
-	Host       string        `yaml:"host"`
-	Port       int           `yaml:"port"`
-	Database   string        `yaml:"database"`
-	Collection string        `yaml:"collection"`
-	Username   string        `yaml:"username"`
-	Password   string        `yaml:"password"`
-	Timeout    time.Duration `yaml:"timeout"`
+	Host     string        `yaml:"host"`
+	Port     int           `yaml:"port"`
+	Username string        `yaml:"username"`
+	Password string        `yaml:"password"`
+	Timeout  time.Duration `yaml:"timeout"`
+}
+
+type MongoDBDatabaseHandle struct {
+	Database   string `yaml:"database"`
+	Collection string `yaml:"collection"`
 }
 
 // NewConfigLoaderFactory creates a new ConfigLoaderFactory
@@ -156,12 +159,6 @@ func setDefaults(cfg *Config) {
 	}
 	if cfg.MongoDB.Port == 0 {
 		cfg.MongoDB.Port = 10108
-	}
-	if cfg.MongoDB.Database == "" {
-		cfg.MongoDB.Database = "routing"
-	}
-	if cfg.MongoDB.Collection == "" {
-		cfg.MongoDB.Collection = "interests"
 	}
 	if cfg.MongoDB.Username == "" {
 		cfg.MongoDB.Username = ""

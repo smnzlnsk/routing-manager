@@ -52,13 +52,11 @@ func (e *EnvConfigLoader) Load() (*Config, error) {
 			Port: getEnvAsInt("SERVICE_MANAGER_PORT", 10110),
 		},
 		MongoDB: MongoDBConfig{
-			Host:       getEnv("MONGODB_HOST", "cluster_mongo_net"),
-			Port:       getEnvAsInt("MONGODB_PORT", 10108),
-			Database:   getEnv("MONGODB_DATABASE", "routing"),
-			Collection: getEnv("MONGODB_COLLECTION", "interests"),
-			Username:   getEnv("MONGODB_USERNAME", ""),
-			Password:   getEnv("MONGODB_PASSWORD", ""),
-			Timeout:    getEnvAsDuration("MONGODB_TIMEOUT", 10*time.Second),
+			Host:     getEnv("MONGODB_HOST", "cluster_mongo_net"),
+			Port:     getEnvAsInt("MONGODB_PORT", 10108),
+			Username: getEnv("MONGODB_USERNAME", ""),
+			Password: getEnv("MONGODB_PASSWORD", ""),
+			Timeout:  getEnvAsDuration("MONGODB_TIMEOUT", 10*time.Second),
 		},
 	}
 

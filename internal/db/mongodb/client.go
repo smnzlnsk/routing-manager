@@ -12,9 +12,9 @@ import (
 
 // Client represents a MongoDB client with connection to a specific database
 type Client struct {
-	client   *mongo.Client
-	database *mongo.Database
-	logger   *zap.Logger
+	client    *mongo.Client
+	databases map[string]*mongo.Database
+	logger    *zap.Logger
 }
 
 // NewClient creates a new MongoDB client
@@ -44,24 +44,26 @@ func NewClient(cfg *config.MongoDBConfig, logger *zap.Logger) (*Client, error) {
 		return nil, err
 	}
 
-	// Get the database
-	database := client.Database(cfg.Database)
+	// Connect to the databases
+	databases := make(map[string]*mongo.Database)
+	databases["routing"] = client.Database("routing")
+	databases["jobs"] = client.Database("jobs")
 
 	logger.Info("Connected to MongoDB",
 		zap.String("host", cfg.Host),
 		zap.Int("port", cfg.Port),
-		zap.String("database", cfg.Database))
+		zap.Any("databases", databases))
 
 	return &Client{
-		client:   client,
-		database: database,
-		logger:   logger,
+		client:    client,
+		databases: databases,
+		logger:    logger,
 	}, nil
 }
 
 // GetDatabase returns the MongoDB database
-func (c *Client) GetDatabase() *mongo.Database {
-	return c.database
+func (c *Client) GetDatabase(database string) *mongo.Database {
+	return c.databases[database]
 }
 
 // Close closes the MongoDB connection
