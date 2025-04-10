@@ -9,16 +9,10 @@ import (
 	"go.uber.org/zap"
 )
 
-// TaskExecutor defines the interface for executing tasks against another microservice
-type TaskExecutor interface {
-	// ExecuteTask executes a task for the given interest
-	ExecuteTask(interest *domain.Interest) error
-}
-
 // TaskSchedulerObserver schedules regular tasks for interests
 type TaskSchedulerObserver struct {
 	*BaseObserver
-	taskExecutor TaskExecutor
+	taskExecutor domain.TaskExecutor
 	schedulers   map[string]*time.Ticker
 	done         map[string]chan bool
 	interval     time.Duration
@@ -28,7 +22,7 @@ type TaskSchedulerObserver struct {
 // NewTaskSchedulerObserver creates a new TaskSchedulerObserver
 func NewTaskSchedulerObserver(
 	logger *zap.Logger,
-	taskExecutor TaskExecutor,
+	taskExecutor domain.TaskExecutor,
 	interval time.Duration,
 ) *TaskSchedulerObserver {
 	if interval <= 0 {

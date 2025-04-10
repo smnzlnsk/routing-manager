@@ -1,7 +1,8 @@
-package observer
+package executor
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,7 +10,7 @@ import (
 	"time"
 
 	"github.com/smnzlnsk/routing-manager/internal/domain"
-	"github.com/smnzlnsk/routing-manager/internal/observer/implementations"
+	"github.com/smnzlnsk/routing-manager/internal/service"
 	"go.uber.org/zap"
 )
 
@@ -18,17 +19,19 @@ type ExternalTaskExecutor struct {
 	httpClient *http.Client
 	serviceURL string
 	logger     *zap.Logger
+	jobService service.JobService
 }
 
 // TaskPayload represents the data to be sent to the external service
 type TaskPayload struct {
-	AppName   string    `json:"appName"`
-	ServiceIP string    `json:"serviceIp"`
-	Timestamp time.Time `json:"timestamp"`
+	AppName   string                 `json:"appName"`
+	ServiceIP string                 `json:"serviceIp"`
+	Timestamp time.Time              `json:"timestamp"`
+	JobData   map[string]interface{} `json:"jobData,omitempty"`
 }
 
 // NewExternalTaskExecutor creates a new instance of ExternalTaskExecutor
-func NewExternalTaskExecutor(serviceURL string, timeout time.Duration, logger *zap.Logger) implementations.TaskExecutor {
+func NewExternalTaskExecutor(serviceURL string, timeout time.Duration, jobService service.JobService, logger *zap.Logger) domain.TaskExecutor {
 	if timeout <= 0 {
 		timeout = 10 * time.Second
 	}
@@ -38,16 +41,34 @@ func NewExternalTaskExecutor(serviceURL string, timeout time.Duration, logger *z
 			Timeout: timeout,
 		},
 		serviceURL: serviceURL,
+		jobService: jobService,
 		logger:     logger,
 	}
 }
 
 // ExecuteTask sends a task request to the external microservice
 func (e *ExternalTaskExecutor) ExecuteTask(interest *domain.Interest) error {
+	// Create a basic payload
 	payload := TaskPayload{
 		AppName:   interest.AppName,
 		ServiceIP: interest.ServiceIp,
 		Timestamp: time.Now(),
+	}
+
+	// If we need job data, retrieve it
+	if job, err := e.jobService.GetByJobName(context.Background(), interest.AppName); err == nil {
+		// We found a job, add its data to the payload
+		jobData := make(map[string]interface{})
+		// Add job data as needed
+		jobData["jobName"] = job.JobName
+		jobData["serviceIpList"] = job.ServiceIpList
+		jobData["serviceInstanceList"] = job.ServiceInstanceList
+		// Add the job data to the payload
+		payload.JobData = jobData
+	} else {
+		e.logger.Warn("Could not find job data for interest",
+			zap.String("appName", interest.AppName),
+			zap.Error(err))
 	}
 
 	jsonData, err := json.Marshal(payload)
@@ -82,7 +103,7 @@ func (e *ExternalTaskExecutor) ExecuteTask(interest *domain.Interest) error {
 
 	// Check the response status
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("task request failed with status code: %d", resp.StatusCode)
+		return fmt.Errorf("task request failed with status code: %d, body: %s", resp.StatusCode, string(respBody))
 	}
 
 	e.logger.Info("Task executed successfully",

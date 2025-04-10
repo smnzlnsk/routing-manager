@@ -13,8 +13,8 @@ import (
 	"github.com/smnzlnsk/routing-manager/config"
 	"github.com/smnzlnsk/routing-manager/internal/api/v1/router"
 	"github.com/smnzlnsk/routing-manager/internal/db/mongodb"
+	"github.com/smnzlnsk/routing-manager/internal/executor"
 	"github.com/smnzlnsk/routing-manager/internal/logger"
-	"github.com/smnzlnsk/routing-manager/internal/observer"
 	"github.com/smnzlnsk/routing-manager/internal/observer/implementations"
 	mongoRepo "github.com/smnzlnsk/routing-manager/internal/repository/mongodb"
 	"github.com/smnzlnsk/routing-manager/internal/service"
@@ -123,9 +123,10 @@ func main() {
 func setupObservers(cfg *config.Config, services *service.Services, logger *zap.Logger) {
 	// Create task executor for the monitoring-manager
 	// The service URL should ideally come from configuration
-	taskExecutor := observer.NewExternalTaskExecutor(
+	taskExecutor := executor.NewExternalTaskExecutor(
 		fmt.Sprintf("http://%s:%d", cfg.MonitoringManager.Host, cfg.MonitoringManager.Port),
-		5*time.Second, // Timeout
+		5*time.Second,       // Timeout
+		services.JobService, // Pass the JobService to the executor
 		logger,
 	)
 
