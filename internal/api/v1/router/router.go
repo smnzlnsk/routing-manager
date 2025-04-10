@@ -27,5 +27,11 @@ func Setup(services *service.Services, logger *zap.Logger) *chi.Mux {
 		r.Delete("/service/{serviceIp}", interestHandler.DeleteByServiceIp)
 	})
 
+	alertHandler := handler.NewAlertHandler(services.AlertService, logger)
+
+	router.Route("/api/v1/alerts", func(r chi.Router) {
+		r.Post("/", alertHandler.HandleAlert)
+	})
+
 	return router
 }
