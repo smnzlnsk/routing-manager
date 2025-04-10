@@ -14,7 +14,7 @@ import (
 	"github.com/smnzlnsk/routing-manager/internal/api/v1/router"
 	"github.com/smnzlnsk/routing-manager/internal/db/mongodb"
 	"github.com/smnzlnsk/routing-manager/internal/logger"
-	"github.com/smnzlnsk/routing-manager/internal/mqtt"
+	"github.com/smnzlnsk/routing-manager/internal/observer"
 	"github.com/smnzlnsk/routing-manager/internal/observer/implementations"
 	mongoRepo "github.com/smnzlnsk/routing-manager/internal/repository/mongodb"
 	"github.com/smnzlnsk/routing-manager/internal/service"
@@ -74,26 +74,6 @@ func main() {
 	// Log configuration source
 	logger.Info("Configuration loaded successfully")
 
-	// Setup MQTT client
-	mqtt.InitInstance(config.MQTTConfig{
-		Host:           cfg.MQTT.Host,
-		Port:           cfg.MQTT.Port,
-		ClientID:       cfg.MQTT.ClientID,
-		Username:       cfg.MQTT.Username,
-		Password:       cfg.MQTT.Password,
-		QoS:            cfg.MQTT.QoS,
-		CleanSession:   cfg.MQTT.CleanSession,
-		ConnectTimeout: cfg.MQTT.ConnectTimeout,
-	})
-
-	mqttClient := mqtt.Instance()
-
-	// Connect to MQTT broker
-	if err := mqttClient.Connect(); err != nil {
-		logger.Fatalf("Failed to connect to MQTT broker: %v", err)
-	}
-	defer mqttClient.Disconnect()
-
 	// Initialize MongoDB connection
 	mongoClient, err := mongodb.NewClient(&cfg.MongoDB, logger.Get().Desugar())
 	if err != nil {
@@ -143,7 +123,7 @@ func main() {
 func setupObservers(cfg *config.Config, services *service.Services, logger *zap.Logger) {
 	// Create task executor for the monitoring-manager
 	// The service URL should ideally come from configuration
-	taskExecutor := service.NewExternalTaskExecutor(
+	taskExecutor := observer.NewExternalTaskExecutor(
 		fmt.Sprintf("http://%s:%d", cfg.MonitoringManager.Host, cfg.MonitoringManager.Port),
 		5*time.Second, // Timeout
 		logger,
