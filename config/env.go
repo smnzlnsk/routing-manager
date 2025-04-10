@@ -33,16 +33,6 @@ func (e *EnvConfigLoader) Load() (*Config, error) {
 		HTTPServer: HTTPServerConfig{
 			Port: getEnvAsInt("ROUTING_MANAGER_HTTP_SERVER_PORT", 8080),
 		},
-		MQTT: MQTTConfig{
-			Host:           getEnv("MQTT_BROKER_HOST", "mqtt"),
-			Port:           getEnvAsInt("MQTT_BROKER_PORT", 1883),
-			ClientID:       getEnv("MQTT_CLIENT_ID", "mqtt-worker-"+strconv.FormatInt(time.Now().UnixNano(), 10)),
-			Username:       getEnv("MQTT_USERNAME", ""),
-			Password:       getEnv("MQTT_PASSWORD", ""),
-			QoS:            byte(getEnvAsInt("MQTT_QOS", 1)),
-			CleanSession:   getEnvAsBool("MQTT_CLEAN_SESSION", true),
-			ConnectTimeout: getEnvAsDuration("MQTT_CONNECT_TIMEOUT", 30*time.Second),
-		},
 		MonitoringManager: MonitoringManagerConfig{
 			Host: getEnv("MONITORING_MANAGER_HOST", "monitoring_manager"),
 			Port: getEnvAsInt("MONITORING_MANAGER_PORT", 10999),
