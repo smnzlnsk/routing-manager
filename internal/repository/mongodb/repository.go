@@ -13,6 +13,8 @@ func New(cfg *config.MongoDBConfig, mongoClient *mongodb.Client, logger *zap.Log
 		AlertRepository:    NewAlertRepository(mongoClient.GetDatabase("routing"), "alerts", logger),
 		InterestRepository: NewInterestRepository(mongoClient.GetDatabase("routing"), "interests", logger),
 		JobRepository:      NewJobRepository(mongoClient.GetDatabase("jobs"), "jobs", logger),
-		// Initialize other repositories here with their dependencies
+		RoutingRepository:  NewRoutingRepository(mongoClient.GetDatabase("jobs"), "jobs", logger),
+
+		// TODO: Initialize other repositories here with their dependencies
 	}
 }

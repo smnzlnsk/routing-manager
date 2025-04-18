@@ -14,6 +14,7 @@ type Services struct {
 	InterestSubject       *observer.InterestSubject
 	TaskSchedulerObserver *implementations.TaskSchedulerObserver
 	JobService            JobService
+	RoutingService        RoutingService
 }
 
 // NewServices creates a new Services instance
@@ -26,7 +27,8 @@ func New(repositories *repository.Repositories, logger *zap.Logger) *Services {
 		InterestService: NewInterestService(repositories.InterestRepository, interestSubject, logger),
 		InterestSubject: interestSubject,
 		// TaskSchedulerObserver will be set separately after creation
-		JobService: NewJobService(repositories.JobRepository, logger),
+		JobService:     NewJobService(repositories.JobRepository, logger),
+		RoutingService: NewRoutingService(repositories.RoutingRepository, logger),
 		// Initialize other services here with their dependencies
 	}
 }

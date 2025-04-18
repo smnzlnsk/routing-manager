@@ -60,9 +60,9 @@ func (e *ExternalTaskExecutor) ExecuteTask(interest *domain.Interest) error {
 		// We found a job, add its data to the payload
 		jobData := make(map[string]interface{})
 		// Add job data as needed
-		jobData["jobName"] = job.JobName
-		jobData["serviceIpList"] = job.ServiceIpList
-		jobData["serviceInstanceList"] = job.ServiceInstanceList
+		jobData["job_name"] = job.JobName
+		jobData["service_ip_list"] = job.ServiceIpList
+		jobData["instance_list"] = job.ServiceInstanceList
 		// Add the job data to the payload
 		payload.JobData = jobData
 	} else {
@@ -71,46 +71,50 @@ func (e *ExternalTaskExecutor) ExecuteTask(interest *domain.Interest) error {
 			zap.Error(err))
 	}
 
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal task payload: %w", err)
+	for _, entry := range payload.JobData["service_ip_list"].([]domain.ServiceIpListEntry) {
+		ipType := entry.IpType
+
+		jsonData, err := json.Marshal(payload)
+		if err != nil {
+			return fmt.Errorf("failed to marshal task payload: %w", err)
+		}
+
+		// Construct the target URL
+		targetURL := fmt.Sprintf("%s/policy/routing/%s", e.serviceURL, ipType)
+
+		// Create the HTTP request
+		req, err := http.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(jsonData))
+		if err != nil {
+			return fmt.Errorf("failed to create request: %w", err)
+		}
+
+		// Set appropriate headers
+		req.Header.Set("Content-Type", "application/json")
+
+		// Execute the request
+		resp, err := e.httpClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("failed to execute task request: %w", err)
+		}
+
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read response body: %w", err)
+		}
+
+		defer resp.Body.Close()
+
+		// Check the response status
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return fmt.Errorf("task request failed with status code: %d, body: %s", resp.StatusCode, string(respBody))
+		}
+
+		e.logger.Info("Task executed successfully",
+			zap.String("appName", interest.AppName),
+			zap.String("serviceIP", interest.ServiceIp),
+			zap.Int("statusCode", resp.StatusCode),
+			zap.String("body", string(respBody)))
 	}
-
-	// Construct the target URL
-	targetURL := fmt.Sprintf("%s/policy/routing/def", e.serviceURL)
-
-	// Create the HTTP request
-	req, err := http.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
-	}
-
-	// Set appropriate headers
-	req.Header.Set("Content-Type", "application/json")
-
-	// Execute the request
-	resp, err := e.httpClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to execute task request: %w", err)
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	defer resp.Body.Close()
-
-	// Check the response status
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("task request failed with status code: %d, body: %s", resp.StatusCode, string(respBody))
-	}
-
-	e.logger.Info("Task executed successfully",
-		zap.String("appName", interest.AppName),
-		zap.String("serviceIP", interest.ServiceIp),
-		zap.Int("statusCode", resp.StatusCode),
-		zap.String("body", string(respBody)))
 
 	return nil
 }

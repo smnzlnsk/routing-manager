@@ -29,8 +29,15 @@ func Setup(services *service.Services, logger *zap.Logger) *chi.Mux {
 
 	alertHandler := handler.NewAlertHandler(services.AlertService, logger)
 
-	router.Route("/api/v1/alerts", func(r chi.Router) {
+	router.Route("/api/v1/alert", func(r chi.Router) {
 		r.Post("/", alertHandler.HandleAlert)
+
+	})
+
+	routingHandler := handler.NewRoutingHandler(services.RoutingService, logger)
+	router.Route("/api/v1/routing", func(r chi.Router) {
+		r.Post("/", routingHandler.HandleRoutingChange)
+		r.Get("/app/{appName}", routingHandler.GetRouting)
 	})
 
 	return router
