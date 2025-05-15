@@ -7,6 +7,6 @@ import (
 )
 
 type RoutingRepository interface {
-	GetRouting(ctx context.Context, appName string) (*domain.JobRouting, error)
-	UpdateRouting(ctx context.Context, routing *domain.JobRouting) error
+	GetRouting(ctx context.Context, appName string) (*domain.Job, error)
+	UpdateRouting(ctx context.Context, routing *domain.Job) error
 }

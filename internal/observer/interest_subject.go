@@ -4,13 +4,12 @@ import (
 	"sync"
 
 	"github.com/smnzlnsk/routing-manager/internal/domain"
-	"github.com/smnzlnsk/routing-manager/internal/domain/observer"
 	"go.uber.org/zap"
 )
 
 // InterestSubject is the concrete implementation of the Subject interface for interest events
 type InterestSubject struct {
-	observers []observer.Observer
+	observers []domain.Observer
 	mutex     sync.RWMutex
 	logger    *zap.Logger
 }
@@ -18,13 +17,13 @@ type InterestSubject struct {
 // NewInterestSubject creates a new instance of InterestSubject
 func NewInterestSubject(logger *zap.Logger) *InterestSubject {
 	return &InterestSubject{
-		observers: make([]observer.Observer, 0),
+		observers: make([]domain.Observer, 0),
 		logger:    logger,
 	}
 }
 
 // Register adds an observer to the notification list
-func (s *InterestSubject) Register(obs observer.Observer) {
+func (s *InterestSubject) Register(obs domain.Observer) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -33,7 +32,7 @@ func (s *InterestSubject) Register(obs observer.Observer) {
 }
 
 // Deregister removes an observer from the notification list
-func (s *InterestSubject) Deregister(obs observer.Observer) {
+func (s *InterestSubject) Deregister(obs domain.Observer) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -47,9 +46,9 @@ func (s *InterestSubject) Deregister(obs observer.Observer) {
 }
 
 // Notify notifies all observers of an event
-func (s *InterestSubject) Notify(event observer.InterestEvent) {
+func (s *InterestSubject) Notify(event domain.InterestEvent) {
 	s.mutex.RLock()
-	observers := make([]observer.Observer, len(s.observers))
+	observers := make([]domain.Observer, len(s.observers))
 	copy(observers, s.observers)
 	s.mutex.RUnlock()
 
@@ -64,24 +63,24 @@ func (s *InterestSubject) Notify(event observer.InterestEvent) {
 
 // InterestCreated emits an interest created event
 func (s *InterestSubject) InterestCreated(interest *domain.Interest) {
-	s.Notify(observer.InterestEvent{
-		Type:     observer.InterestCreated,
+	s.Notify(domain.InterestEvent{
+		Type:     domain.InterestCreated,
 		Interest: interest,
 	})
 }
 
 // InterestUpdated emits an interest updated event
 func (s *InterestSubject) InterestUpdated(interest *domain.Interest) {
-	s.Notify(observer.InterestEvent{
-		Type:     observer.InterestUpdated,
+	s.Notify(domain.InterestEvent{
+		Type:     domain.InterestUpdated,
 		Interest: interest,
 	})
 }
 
 // InterestDeleted emits an interest deleted event
 func (s *InterestSubject) InterestDeleted(interest *domain.Interest) {
-	s.Notify(observer.InterestEvent{
-		Type:     observer.InterestDeleted,
+	s.Notify(domain.InterestEvent{
+		Type:     domain.InterestDeleted,
 		Interest: interest,
 	})
 }

@@ -1,7 +1,7 @@
 package implementations
 
 import (
-	"github.com/smnzlnsk/routing-manager/internal/domain/observer"
+	"github.com/smnzlnsk/routing-manager/internal/domain"
 	"go.uber.org/zap"
 )
 
@@ -21,7 +21,7 @@ func NewBaseObserver(name string, logger *zap.Logger) *BaseObserver {
 
 // Update is called when an event occurs
 // This is a placeholder implementation that should be overridden by concrete observers
-func (o *BaseObserver) Update(event observer.InterestEvent) {
+func (o *BaseObserver) Update(event domain.InterestEvent) {
 	o.logger.Debug("Observer received event",
 		zap.String("observer", o.name),
 		zap.String("eventType", string(event.Type)))

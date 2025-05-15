@@ -1,6 +1,4 @@
-package observer
-
-import "github.com/smnzlnsk/routing-manager/internal/domain"
+package domain
 
 // EventType defines the type of event
 type EventType string
@@ -15,7 +13,7 @@ const (
 // InterestEvent represents an event related to an interest
 type InterestEvent struct {
 	Type     EventType
-	Interest *domain.Interest
+	Interest *Interest
 }
 
 // Observer defines the interface for objects that want to be notified of events

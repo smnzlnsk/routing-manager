@@ -10,7 +10,7 @@ import (
 
 type RoutingService interface {
 	HandleRoutingChange(ctx context.Context, routingChange *domain.RoutingChange) error
-	GetRouting(ctx context.Context, appName string) (*domain.JobRouting, error)
+	GetRouting(ctx context.Context, appName string) (*domain.Job, error)
 }
 
 type routingService struct {
@@ -27,17 +27,10 @@ func NewRoutingService(repo repository.RoutingRepository, logger *zap.Logger) Ro
 
 func (s *routingService) HandleRoutingChange(ctx context.Context, routingChange *domain.RoutingChange) error {
 	s.logger.Info("Handling routing change", zap.Any("routingChange", routingChange))
-
 	return nil
 }
 
-func (s *routingService) GetRouting(ctx context.Context, appName string) (*domain.JobRouting, error) {
+func (s *routingService) GetRouting(ctx context.Context, appName string) (*domain.Job, error) {
 	s.logger.Info("Getting routing", zap.String("appName", appName))
-
-	routing, err := s.repo.GetRouting(ctx, appName)
-	if err != nil {
-		return nil, err
-	}
-
-	return routing, nil
+	return nil, nil
 }

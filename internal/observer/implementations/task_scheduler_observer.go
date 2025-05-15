@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/smnzlnsk/routing-manager/internal/domain"
-	"github.com/smnzlnsk/routing-manager/internal/domain/observer"
 	"go.uber.org/zap"
 )
 
@@ -39,15 +38,15 @@ func NewTaskSchedulerObserver(
 }
 
 // Update handles interest events by starting or stopping the scheduled tasks
-func (o *TaskSchedulerObserver) Update(event observer.InterestEvent) {
+func (o *TaskSchedulerObserver) Update(event domain.InterestEvent) {
 	interest := event.Interest
 	appName := interest.AppName
 
 	switch event.Type {
-	case observer.InterestCreated:
+	case domain.InterestCreated:
 		o.startTaskScheduler(interest)
 
-	case observer.InterestUpdated:
+	case domain.InterestUpdated:
 		// If we have a scheduler, stop it and start a new one with the updated interest
 		if o.hasScheduler(appName) {
 			o.stopTaskScheduler(appName)
@@ -57,7 +56,7 @@ func (o *TaskSchedulerObserver) Update(event observer.InterestEvent) {
 			o.startTaskScheduler(interest)
 		}
 
-	case observer.InterestDeleted:
+	case domain.InterestDeleted:
 		// Stop the scheduler for deleted interests
 		o.stopTaskScheduler(appName)
 	}
@@ -92,11 +91,11 @@ func (o *TaskSchedulerObserver) startTaskScheduler(interest *domain.Interest) {
 	// Start the scheduler in a goroutine
 	go func() {
 		// Execute immediately on start
-		if err := o.taskExecutor.ExecuteTask(interestCopy); err != nil {
+		/*if err := o.taskExecutor.ExecuteTask(interestCopy); err != nil {
 			o.logger.Error("Failed to execute initial task",
 				zap.String("appName", appName),
 				zap.Error(err))
-		}
+		}*/
 
 		// Then continue with the ticker
 		for {

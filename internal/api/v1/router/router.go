@@ -14,8 +14,8 @@ func Setup(services *service.Services, logger *zap.Logger) *chi.Mux {
 	// Middleware
 	router.Use(middleware.Logger)
 
+	// Setup Interests API
 	interestHandler := handler.NewInterestHandler(services.InterestService, logger)
-
 	router.Route("/api/v1/interests", func(r chi.Router) {
 		r.Post("/", interestHandler.Create)
 		r.Get("/", interestHandler.List)
@@ -27,18 +27,21 @@ func Setup(services *service.Services, logger *zap.Logger) *chi.Mux {
 		r.Delete("/service/{serviceIp}", interestHandler.DeleteByServiceIp)
 	})
 
-	alertHandler := handler.NewAlertHandler(services.AlertService, logger)
+	/* Disable alert and routing for now
+	Functionality is taken over by the cluster service manager
+		alertHandler := handler.NewAlertHandler(services.AlertService, logger)
 
-	router.Route("/api/v1/alert", func(r chi.Router) {
-		r.Post("/", alertHandler.HandleAlert)
+		router.Route("/api/v1/alert", func(r chi.Router) {
+			r.Post("/", alertHandler.HandleAlert)
 
-	})
+		})
 
-	routingHandler := handler.NewRoutingHandler(services.RoutingService, logger)
-	router.Route("/api/v1/routing", func(r chi.Router) {
-		r.Post("/", routingHandler.HandleRoutingChange)
-		r.Get("/app/{appName}", routingHandler.GetRouting)
-	})
+		routingHandler := handler.NewRoutingHandler(services.RoutingService, logger)
+		router.Route("/api/v1/routing", func(r chi.Router) {
+			r.Post("/", routingHandler.HandleRoutingChange)
+			r.Get("/app/{appName}", routingHandler.GetRouting)
+		})
+	*/
 
 	return router
 }

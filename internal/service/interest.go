@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/smnzlnsk/routing-manager/internal/domain"
-	"github.com/smnzlnsk/routing-manager/internal/domain/observer"
 	"github.com/smnzlnsk/routing-manager/internal/repository"
 	"go.uber.org/zap"
 )
@@ -24,10 +23,10 @@ type InterestService interface {
 type interestService struct {
 	repo    repository.InterestRepository
 	logger  *zap.Logger
-	subject observer.Subject
+	subject domain.Subject
 }
 
-func NewInterestService(repo repository.InterestRepository, subject observer.Subject, logger *zap.Logger) InterestService {
+func NewInterestService(repo repository.InterestRepository, subject domain.Subject, logger *zap.Logger) InterestService {
 	return &interestService{
 		repo:    repo,
 		logger:  logger,
@@ -71,8 +70,8 @@ func (s *interestService) Create(ctx context.Context, interest *domain.Interest)
 
 	// Notify observers about the created interest
 	if s.subject != nil {
-		s.subject.Notify(observer.InterestEvent{
-			Type:     observer.InterestCreated,
+		s.subject.Notify(domain.InterestEvent{
+			Type:     domain.InterestCreated,
 			Interest: i,
 		})
 	}

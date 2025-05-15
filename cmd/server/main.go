@@ -89,6 +89,9 @@ func main() {
 	// Initialize observers for the interest state changes
 	setupObservers(cfg, services, logger.Get().Desugar())
 
+	// Restart the services (more specifically the external task executors), if we restarted or crashed
+	services.Restart(ctx, logger.Get().Desugar())
+
 	go func() {
 		logger.Infof("Starting server on port %d", cfg.HTTPServer.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -121,7 +124,7 @@ func main() {
 
 // setupObservers initializes and registers observers for interest state changes
 func setupObservers(cfg *config.Config, services *service.Services, logger *zap.Logger) {
-	// Create task executor for the monitoring-manager
+	// Create task executor for the cluster service manager
 	// The service URL should ideally come from configuration
 	taskExecutor := executor.NewExternalTaskExecutor(
 		fmt.Sprintf("http://%s:%d", cfg.MonitoringManager.Host, cfg.MonitoringManager.Port),

@@ -26,6 +26,7 @@ type ExternalTaskExecutor struct {
 type TaskPayload struct {
 	AppName   string                 `json:"appName"`
 	ServiceIP string                 `json:"serviceIp"`
+	IpType    domain.ServiceIpType   `json:"IpType"`
 	Timestamp time.Time              `json:"timestamp"`
 	JobData   map[string]interface{} `json:"jobData,omitempty"`
 }
@@ -66,21 +67,20 @@ func (e *ExternalTaskExecutor) ExecuteTask(interest *domain.Interest) error {
 		// Add the job data to the payload
 		payload.JobData = jobData
 	} else {
-		e.logger.Warn("Could not find job data for interest",
-			zap.String("appName", interest.AppName),
-			zap.Error(err))
+		return fmt.Errorf("could not find job data for interest: %w", err)
 	}
 
 	for _, entry := range payload.JobData["service_ip_list"].([]domain.ServiceIpListEntry) {
-		ipType := entry.IpType
+		payload.IpType = entry.IpType
 
 		jsonData, err := json.Marshal(payload)
 		if err != nil {
 			return fmt.Errorf("failed to marshal task payload: %w", err)
 		}
+		fmt.Println("jsonData", string(jsonData))
 
 		// Construct the target URL
-		targetURL := fmt.Sprintf("%s/policy/routing/%s", e.serviceURL, ipType)
+		targetURL := fmt.Sprintf("%s/policy/routing/%s", e.serviceURL, entry.IpType)
 
 		// Create the HTTP request
 		req, err := http.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(jsonData))
@@ -111,7 +111,8 @@ func (e *ExternalTaskExecutor) ExecuteTask(interest *domain.Interest) error {
 
 		e.logger.Info("Task executed successfully",
 			zap.String("appName", interest.AppName),
-			zap.String("serviceIP", interest.ServiceIp),
+			zap.String("ipType", string(entry.IpType)),
+			zap.String("serviceIp", interest.ServiceIp),
 			zap.Int("statusCode", resp.StatusCode),
 			zap.String("body", string(respBody)))
 	}
