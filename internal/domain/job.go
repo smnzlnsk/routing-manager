@@ -3,7 +3,10 @@ package domain
 type ServiceIpType string
 
 const (
-	ServiceIpTypeRoundRobin ServiceIpType = "RR"
+	ServiceIpTypeRoundRobin    ServiceIpType = "RR"
+	ServiceIpTypeUnderutilized ServiceIpType = "underutilized"
+	ServiceIpTypeClosest       ServiceIpType = "closest"
+	ServiceIpTypeFPS           ServiceIpType = "fps"
 )
 
 type ServiceIpListEntry struct {
