@@ -100,11 +100,30 @@ func (s *interestService) Update(ctx context.Context, interest *domain.Interest)
 
 func (s *interestService) DeleteByAppName(ctx context.Context, appName string) error {
 	s.logger.Debug("Deleting interest by app name", zap.String("appName", appName))
+	// Notify observers about the deleted interest
+	if s.subject != nil {
+		s.subject.Notify(domain.InterestEvent{
+			Type: domain.InterestDeleted,
+			Interest: &domain.Interest{
+				AppName: appName,
+			},
+		})
+	}
+
 	return s.repo.DeleteByAppName(ctx, appName)
 }
 
 func (s *interestService) DeleteByServiceIp(ctx context.Context, serviceIp string) error {
 	s.logger.Debug("Deleting interest by service IP", zap.String("serviceIp", serviceIp))
+	// Notify observers about the deleted interest
+	if s.subject != nil {
+		s.subject.Notify(domain.InterestEvent{
+			Type: domain.InterestDeleted,
+			Interest: &domain.Interest{
+				ServiceIp: serviceIp,
+			},
+		})
+	}
 	return s.repo.DeleteByServiceIp(ctx, serviceIp)
 }
 
