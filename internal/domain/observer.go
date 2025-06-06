@@ -20,6 +20,9 @@ type InterestEvent struct {
 type Observer interface {
 	// Update is called when an event occurs
 	Update(event InterestEvent)
+
+	// GetID returns the ID of the observer's interest
+	GetID() string
 }
 
 // Subject defines the interface for objects that maintain observers

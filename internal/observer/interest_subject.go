@@ -9,7 +9,7 @@ import (
 
 // InterestSubject is the concrete implementation of the Subject interface for interest events
 type InterestSubject struct {
-	observers []domain.Observer
+	observers map[string]domain.Observer
 	mutex     sync.RWMutex
 	logger    *zap.Logger
 }
@@ -17,7 +17,7 @@ type InterestSubject struct {
 // NewInterestSubject creates a new instance of InterestSubject
 func NewInterestSubject(logger *zap.Logger) *InterestSubject {
 	return &InterestSubject{
-		observers: make([]domain.Observer, 0),
+		observers: make(map[string]domain.Observer),
 		logger:    logger,
 	}
 }
@@ -27,7 +27,7 @@ func (s *InterestSubject) Register(obs domain.Observer) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	s.observers = append(s.observers, obs)
+	s.observers[obs.GetID()] = obs
 	s.logger.Debug("Observer registered")
 }
 
@@ -36,20 +36,17 @@ func (s *InterestSubject) Deregister(obs domain.Observer) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	for i, o := range s.observers {
-		if o == obs {
-			s.observers = append(s.observers[:i], s.observers[i+1:]...)
-			s.logger.Debug("Observer deregistered")
-			return
-		}
-	}
+	delete(s.observers, obs.GetID())
+	s.logger.Debug("Observer deregistered")
 }
 
 // Notify notifies all observers of an event
 func (s *InterestSubject) Notify(event domain.InterestEvent) {
 	s.mutex.RLock()
-	observers := make([]domain.Observer, len(s.observers))
-	copy(observers, s.observers)
+	observers := make([]domain.Observer, 0, len(s.observers))
+	for _, obs := range s.observers {
+		observers = append(observers, obs)
+	}
 	s.mutex.RUnlock()
 
 	s.logger.Debug("Notifying observers",

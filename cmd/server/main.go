@@ -137,7 +137,7 @@ func setupObservers(cfg *config.Config, services *service.Services, logger *zap.
 	taskSchedulerObserver := implementations.NewTaskSchedulerObserver(
 		logger,
 		taskExecutor,
-		30*time.Second, // Task execution interval - adjust as needed
+		1*time.Second, // Task execution interval - adjust as needed
 	)
 
 	// Register observers with the subject

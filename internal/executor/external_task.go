@@ -72,6 +72,9 @@ func (e *ExternalTaskExecutor) ExecuteTask(interest *domain.Interest) error {
 
 	for _, entry := range payload.JobData["service_ip_list"].([]domain.ServiceIpListEntry) {
 		payload.IpType = entry.IpType
+		if payload.IpType == domain.ServiceIpTypeRoundRobin {
+			continue
+		}
 
 		jsonData, err := json.Marshal(payload)
 		if err != nil {
@@ -82,6 +85,7 @@ func (e *ExternalTaskExecutor) ExecuteTask(interest *domain.Interest) error {
 		// Construct the target URL
 		targetURL := fmt.Sprintf("%s/policy/routing/%s", e.serviceURL, entry.IpType)
 
+		fmt.Println("targetURL", targetURL)
 		// Create the HTTP request
 		req, err := http.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(jsonData))
 		if err != nil {

@@ -25,7 +25,7 @@ func NewTaskSchedulerObserver(
 	interval time.Duration,
 ) *TaskSchedulerObserver {
 	if interval <= 0 {
-		interval = 1 * time.Minute // Default interval
+		interval = 1 * time.Second // Default interval
 	}
 
 	return &TaskSchedulerObserver{
