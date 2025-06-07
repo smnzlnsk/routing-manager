@@ -30,20 +30,12 @@ FROM alpine:3.18
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata bash procps
 
-# Create a non-root user to run the application
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Copy the binary from the builder stage
 COPY --from=builder /app/routing-manager /app/
 COPY --from=builder /app/config.yaml /app/
-
-# Set ownership of the application files
-RUN chown -R appuser:appgroup /app
-
-# Switch to non-root user
-USER appuser
 
 # Set environment variables
 ENV LOG_FORMAT=console \
